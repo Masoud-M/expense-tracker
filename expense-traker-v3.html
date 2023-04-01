@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="expenses.css" />
+    <title>Expense Tracker</title>
+  </head>
+  <body>
+    <div class="top-section">
+      <p>Name</p>
+      <input class="input" id="name-input" type="text" autofocus />
+      <p>Date</p>
+      <input class="input" id="date-input" type="date" />
+      <p>Amount</p>
+      <input class="input" id="amount-input" type="number" placeholder="$" />
+      <button class="submit-button" onclick="userInput()">Submit</button>
+      <br />
+    </div>
+    <div class="mid-section">
+      <table class="my-table">
+        <thead>
+          <tr class="my-table-head">
+            <th>Name</th>
+            <th>Date</th>
+            <th>Amount</th>
+          </tr>
+        </thead>
+        <tbody class="my-table-body" id="expenses-list"></tbody>
+        <tfoot class="footer">
+          <td id="total">Total :</td>
+        </tfoot>
+      </table>
+    </div>
+
+    <script>
+      let expenses;
+
+      const savedExpenses = JSON.parse(localStorage.getItem("expenses"));
+
+      if (Array.isArray(savedExpenses)) {
+        expenses = savedExpenses;
+      } else {
+        expenses = [
+          {
+            name: "book",
+            date: "2022-10-02",
+            amount: "65",
+            id: "id1",
+          },
+          {
+            name: "suit",
+            date: "2022-05-06",
+            amount: "120",
+            id: "id2",
+          },
+          {
+            name: "gym membership",
+            date: "2022-07-01",
+            amount: "100",
+            id: "id3",
+          },
+        ];
+      }
+      sum();
+      const tableEl = document.querySelector("table");
+
+      function onDeleteRow(e) {
+        if (!e.target.classList.contains("deleteBtn")) {
+          return;
+        }
+
+        const btn = e.target;
+        let idToDelete = e.target.id;
+        let arrayIndex = expenses.findIndex((val) => val.id === idToDelete);
+        expenses.splice(arrayIndex, 1);
+        btn.closest("tr").remove();
+
+        saveExpenses();
+        sum();
+      }
+
+      tableEl.addEventListener("click", onDeleteRow);
+
+      function render() {
+        document.getElementById("expenses-list").innerHTML = "";
+
+        let table = document.querySelector("tbody");
+        let data = Object.keys(expenses[0]);
+        generateTable(table, expenses);
+      }
+
+      render();
+
+      function sum() {
+        function extractValue(arr, prop) {
+          let extractedValue = [];
+          for (let i = 0; i < arr.length; ++i) {
+            extractedValue.push(arr[i][prop]);
+          }
+
+          return extractedValue;
+        }
+
+        let totalAmount = extractValue(expenses, "amount");
+
+        let total = 0;
+        for (let i = 0; i < totalAmount.length; i++) {
+          total = total + parseFloat(totalAmount[i]);
+        }
+        document.getElementById("total").innerHTML = "Total : " + total + " $";
+      }
+      function userInput() {
+        const textbox1 = document.getElementById("name-input");
+        const name = textbox1.value;
+
+        const datePicker = document.getElementById("date-input");
+        const date = datePicker.value;
+
+        const textbox2 = document.getElementById("amount-input");
+        const amount = textbox2.value;
+
+        updateInfo(name, date, amount);
+        saveExpenses();
+        sum();
+        render();
+      }
+
+      function updateInfo(name, date, amount) {
+        var newId = "" + new Date().getTime();
+        expenses.push({
+          name: name,
+          date: date,
+          amount: amount,
+          id: newId,
+        });
+      }
+
+      function saveExpenses() {
+        localStorage.setItem("expenses", JSON.stringify(expenses));
+      }
+
+      function generateTable(table, data) {
+        for (let element of data) {
+          let row = table.insertRow();
+
+          for (key in element) {
+            if (key != "id") {
+              let cell = row.insertCell();
+              let text = document.createTextNode(element[key]);
+              cell.appendChild(text);
+            }
+          }
+
+          const deleteButton = document.createElement("button");
+          deleteButton.innerText = "Delete";
+          deleteButton.className = "deleteBtn";
+          var btnId = element.id;
+          deleteButton.id = btnId;
+          row.appendChild(deleteButton);
+        }
+      }
+      sum();
+    </script>
+  </body>
+</html>
